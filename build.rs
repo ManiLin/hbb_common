@@ -1,5 +1,20 @@
 fn main() {
-    let out_dir = format!("{}/protos", std::env::var("OUT_DIR").unwrap());
+    let out = std::env::var("OUT_DIR").unwrap();
+    println!("cargo:rerun-if-env-changed=INVENTORY_REPORT_URL");
+
+    let inv_url = std::env::var("INVENTORY_REPORT_URL").unwrap_or_default();
+    let inv_path = std::path::Path::new(&out).join("default_inventory_report_url.rs");
+    let inv_src = if inv_url.is_empty() {
+        "pub const DEFAULT_INVENTORY_REPORT_URL_FROM_BUILD: &str = \"\";\n".to_string()
+    } else {
+        format!(
+            "pub const DEFAULT_INVENTORY_REPORT_URL_FROM_BUILD: &str = {:?};\n",
+            inv_url
+        )
+    };
+    std::fs::write(&inv_path, inv_src).expect("write default_inventory_report_url.rs");
+
+    let out_dir = format!("{out}/protos");
 
     std::fs::create_dir_all(&out_dir).unwrap();
 
