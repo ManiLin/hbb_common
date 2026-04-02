@@ -1219,13 +1219,29 @@ impl Config {
     }
 
     /// URL отчётов в портал учёта: опция `inventory-report-url`, иначе значение из сборки (`INVENTORY_REPORT_URL`).
+    /// Если указан только хост и порт (например `http://192.168.0.1:8088/`), к пути добавляется `api/v1/report`.
     pub fn get_inventory_report_url() -> String {
         let from_file = Self::get_option(keys::OPTION_INVENTORY_REPORT_URL);
         let t = from_file.trim();
-        if !t.is_empty() {
-            return t.to_owned();
+        let raw = if !t.is_empty() {
+            t.to_owned()
+        } else {
+            DEFAULT_INVENTORY_REPORT_URL_FROM_BUILD.to_owned()
+        };
+        Self::normalize_inventory_report_url(raw)
+    }
+
+    fn normalize_inventory_report_url(s: String) -> String {
+        let t = s.trim();
+        if t.is_empty() {
+            return String::new();
         }
-        DEFAULT_INVENTORY_REPORT_URL_FROM_BUILD.to_owned()
+        let mut s = t.trim_end_matches('/').to_string();
+        if !s.contains("/api/v1/report") {
+            s.push('/');
+            s.push_str("api/v1/report");
+        }
+        s
     }
 
     pub fn update_id() {
