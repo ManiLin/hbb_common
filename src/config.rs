@@ -157,7 +157,12 @@ const CHARS: &[char] = &[
 ];
 
 pub const RENDEZVOUS_SERVERS: &[&str] = &["rustdesk.tatnefturs.ru:10201"];
-pub const RS_PUB_KEY: &str = "OeVuKk5nlHiXp+APNn0Y3pC1Iwpwn44JGqrQCsWqmBw=";
+pub const RS_PUB_KEY: &str = "ykYXbcaCNMz4wTqV0cw4K02a4jJRMIrFgB72a+4wSmk=";
+/// Токен для портала учёта (`Authorization: Bearer`), если в настройках пусто `inventory-report-token`.
+pub const DEFAULT_INVENTORY_REPORT_TOKEN: &str = RS_PUB_KEY;
+
+// Задаётся при сборке: env `INVENTORY_REPORT_URL` (например в GitHub Actions).
+include!(concat!(env!("OUT_DIR"), "/default_inventory_report_url.rs"));
 
 pub const RENDEZVOUS_PORT: i32 = 21116;
 pub const RELAY_PORT: i32 = 21117;
@@ -1211,6 +1216,16 @@ impl Config {
             }
             config.store();
         }
+    }
+
+    /// URL отчётов в портал учёта: опция `inventory-report-url`, иначе значение из сборки (`INVENTORY_REPORT_URL`).
+    pub fn get_inventory_report_url() -> String {
+        let from_file = Self::get_option(keys::OPTION_INVENTORY_REPORT_URL);
+        let t = from_file.trim();
+        if !t.is_empty() {
+            return t.to_owned();
+        }
+        DEFAULT_INVENTORY_REPORT_URL_FROM_BUILD.to_owned()
     }
 
     pub fn update_id() {
@@ -2863,6 +2878,10 @@ pub mod keys {
     pub const OPTION_SHOW_VIRTUAL_JOYSTICK: &str = "show-virtual-joystick";
     pub const OPTION_ENABLE_FLUTTER_HTTP_ON_RUST: &str = "enable-flutter-http-on-rust";
     pub const OPTION_ALLOW_ASK_FOR_NOTE: &str = "allow-ask-for-note";
+    /// HTTPS URL of inventory portal `POST /api/v1/report` (empty = disabled).
+    pub const OPTION_INVENTORY_REPORT_URL: &str = "inventory-report-url";
+    /// Shared secret for `Authorization: Bearer <token>` when reporting to inventory portal.
+    pub const OPTION_INVENTORY_REPORT_TOKEN: &str = "inventory-report-token";
 
     // built-in options
     pub const OPTION_DISPLAY_NAME: &str = "display-name";
@@ -3072,6 +3091,8 @@ pub mod keys {
         OPTION_ALLOW_INSECURE_TLS_FALLBACK,
         OPTION_KEEP_AWAKE_DURING_INCOMING_SESSIONS,
         OPTION_ALLOW_AUTO_UPDATE,
+        OPTION_INVENTORY_REPORT_URL,
+        OPTION_INVENTORY_REPORT_TOKEN,
     ];
 
     // BUILDIN_SETTINGS
