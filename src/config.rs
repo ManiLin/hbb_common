@@ -1244,6 +1244,25 @@ impl Config {
         s
     }
 
+    /// URL JSON-метаданных для проверки обновления с портала (`GET`, публичный).
+    /// Если опция `inventory-update-meta-url` пуста, строится из `inventory-report-url`
+    /// (тот же хост, путь `api/v1/downloads/rustdesk/windows/meta`).
+    pub fn get_inventory_software_update_meta_url() -> String {
+        let explicit = Self::get_option(keys::OPTION_INVENTORY_UPDATE_META_URL);
+        let t = explicit.trim();
+        if !t.is_empty() {
+            return t.trim_end_matches('/').to_string();
+        }
+        let report = Self::get_inventory_report_url();
+        if report.is_empty() {
+            return String::new();
+        }
+        report.replace(
+            "/api/v1/report",
+            "/api/v1/downloads/rustdesk/windows/meta",
+        )
+    }
+
     pub fn update_id() {
         // to-do: how about if one ip register a lot of ids?
         let id = Self::get_id();
@@ -2898,6 +2917,8 @@ pub mod keys {
     pub const OPTION_INVENTORY_REPORT_URL: &str = "inventory-report-url";
     /// Shared secret for `Authorization: Bearer <token>` when reporting to inventory portal.
     pub const OPTION_INVENTORY_REPORT_TOKEN: &str = "inventory-report-token";
+    /// Полный URL `GET …/api/v1/downloads/rustdesk/windows/meta` (пусто = вывести из `inventory-report-url`).
+    pub const OPTION_INVENTORY_UPDATE_META_URL: &str = "inventory-update-meta-url";
 
     // built-in options
     pub const OPTION_DISPLAY_NAME: &str = "display-name";
