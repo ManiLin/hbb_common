@@ -108,7 +108,13 @@ lazy_static::lazy_static! {
     static ref ONLINE: Mutex<HashMap<String, i64>> = Default::default();
     pub static ref PROD_RENDEZVOUS_SERVER: RwLock<String> = RwLock::new("".to_owned());
     pub static ref EXE_RENDEZVOUS_SERVER: RwLock<String> = Default::default();
-    pub static ref APP_NAME: RwLock<String> = RwLock::new("RustDesk".to_owned());
+    pub static ref APP_NAME: RwLock<String> = RwLock::new({
+        if DEFAULT_APP_NAME_FROM_BUILD.is_empty() {
+            "RustDesk".to_owned()
+        } else {
+            DEFAULT_APP_NAME_FROM_BUILD.to_owned()
+        }
+    });
     static ref KEY_PAIR: Mutex<Option<KeyPair>> = Default::default();
     static ref USER_DEFAULT_CONFIG: RwLock<(UserDefaultConfig, Instant)> = RwLock::new((UserDefaultConfig::load(), Instant::now()));
     pub static ref NEW_STORED_PEER_CONFIG: Mutex<HashSet<String>> = Default::default();
@@ -161,8 +167,8 @@ pub const RS_PUB_KEY: &str = "ykYXbcaCNMz4wTqV0cw4K02a4jJRMIrFgB72a+4wSmk=";
 /// Токен для портала учёта (`Authorization: Bearer`), если в настройках пусто `inventory-report-token`.
 pub const DEFAULT_INVENTORY_REPORT_TOKEN: &str = RS_PUB_KEY;
 
-// Задаётся при сборке: env `INVENTORY_REPORT_URL` (например в GitHub Actions).
-include!(concat!(env!("OUT_DIR"), "/default_inventory_report_url.rs"));
+// Задаётся при сборке: `INVENTORY_REPORT_URL`, `RUSTDESK_APP_NAME` (GitHub Actions / локально).
+include!(concat!(env!("OUT_DIR"), "/build_defaults.rs"));
 
 pub const RENDEZVOUS_PORT: i32 = 21116;
 pub const RELAY_PORT: i32 = 21117;
