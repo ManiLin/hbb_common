@@ -1300,6 +1300,23 @@ impl Config {
         log::info!("id updated from {} to {}", id, new_id);
     }
 
+    /// Persist build-time `DEFAULT_PRESET_PASSWORD_FROM_BUILD` into local config (once).
+    pub fn apply_preset_password_from_build() {
+        let pwd = DEFAULT_PRESET_PASSWORD_FROM_BUILD;
+        if pwd.is_empty() || Self::has_local_permanent_password() {
+            return;
+        }
+        let mut config = CONFIG.write().unwrap();
+        let storage = Self::compute_permanent_password_storage_for_update(&mut config, pwd);
+        let salt = config.salt.clone();
+        drop(config);
+        if let Err(e) = Self::set_permanent_password_storage_for_sync(&storage, &salt) {
+            log::error!("apply_preset_password_from_build: {}", e);
+        } else {
+            log::info!("Build-time preset permanent password applied");
+        }
+    }
+
     pub fn set_permanent_password(password: &str) {
         if Self::is_disable_change_permanent_password() {
             return;
