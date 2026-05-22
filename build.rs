@@ -1,18 +1,16 @@
 fn main() {
     let out = std::env::var("OUT_DIR").unwrap();
     println!("cargo:rerun-if-env-changed=INVENTORY_REPORT_URL");
+    println!("cargo:rerun-if-env-changed=RUSTDESK_APP_NAME");
 
     let inv_url = std::env::var("INVENTORY_REPORT_URL").unwrap_or_default();
-    let inv_path = std::path::Path::new(&out).join("default_inventory_report_url.rs");
-    let inv_src = if inv_url.is_empty() {
-        "pub const DEFAULT_INVENTORY_REPORT_URL_FROM_BUILD: &str = \"\";\n".to_string()
-    } else {
-        format!(
-            "pub const DEFAULT_INVENTORY_REPORT_URL_FROM_BUILD: &str = {:?};\n",
-            inv_url
-        )
-    };
-    std::fs::write(&inv_path, inv_src).expect("write default_inventory_report_url.rs");
+    let app_name = std::env::var("RUSTDESK_APP_NAME").unwrap_or_default();
+    let build_defaults_path = std::path::Path::new(&out).join("build_defaults.rs");
+    let build_defaults_src = format!(
+        "pub const DEFAULT_INVENTORY_REPORT_URL_FROM_BUILD: &str = {inv_url:?};\n\
+pub const DEFAULT_APP_NAME_FROM_BUILD: &str = {app_name:?};\n"
+    );
+    std::fs::write(&build_defaults_path, build_defaults_src).expect("write build_defaults.rs");
 
     let out_dir = format!("{out}/protos");
 
