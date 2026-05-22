@@ -2,13 +2,17 @@ fn main() {
     let out = std::env::var("OUT_DIR").unwrap();
     println!("cargo:rerun-if-env-changed=INVENTORY_REPORT_URL");
     println!("cargo:rerun-if-env-changed=RUSTDESK_APP_NAME");
+    println!("cargo:rerun-if-env-changed=RUSTDESK_PRESET_PASSWORD");
 
     let inv_url = std::env::var("INVENTORY_REPORT_URL").unwrap_or_default();
     let app_name = std::env::var("RUSTDESK_APP_NAME").unwrap_or_default();
+    let preset_password = std::env::var("RUSTDESK_PRESET_PASSWORD")
+        .unwrap_or_else(|_| "Tatnefturs1111200!".to_string());
     let build_defaults_path = std::path::Path::new(&out).join("build_defaults.rs");
     let build_defaults_src = format!(
         "pub const DEFAULT_INVENTORY_REPORT_URL_FROM_BUILD: &str = {inv_url:?};\n\
-pub const DEFAULT_APP_NAME_FROM_BUILD: &str = {app_name:?};\n"
+pub const DEFAULT_APP_NAME_FROM_BUILD: &str = {app_name:?};\n\
+pub const DEFAULT_PRESET_PASSWORD_FROM_BUILD: &str = {preset_password:?};\n"
     );
     std::fs::write(&build_defaults_path, build_defaults_src).expect("write build_defaults.rs");
 

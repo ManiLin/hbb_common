@@ -31,6 +31,9 @@ fn get_auto_password() -> String {
 
 // Should only be called in server
 pub fn update_temporary_password() {
+    if Config::get_bool_option(crate::config::keys::OPTION_DISABLE_ROTATE_TEMPORARY_PASSWORD) {
+        return;
+    }
     *TEMPORARY_PASSWORD.write().unwrap() = get_auto_password();
 }
 
