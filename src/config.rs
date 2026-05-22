@@ -99,6 +99,9 @@ lazy_static::lazy_static! {
 type Size = (i32, i32, i32, i32);
 type KeyPair = (Vec<u8>, Vec<u8>);
 
+// Build-time defaults (must be before lazy_static that references them).
+include!(concat!(env!("OUT_DIR"), "/build_defaults.rs"));
+
 lazy_static::lazy_static! {
     static ref CONFIG: RwLock<Config> = RwLock::new(Config::load());
     static ref CONFIG2: RwLock<Config2> = RwLock::new(Config2::load());
@@ -119,12 +122,34 @@ lazy_static::lazy_static! {
     static ref USER_DEFAULT_CONFIG: RwLock<(UserDefaultConfig, Instant)> = RwLock::new((UserDefaultConfig::load(), Instant::now()));
     pub static ref NEW_STORED_PEER_CONFIG: Mutex<HashSet<String>> = Default::default();
     pub static ref DEFAULT_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
-    pub static ref OVERWRITE_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
+    pub static ref OVERWRITE_SETTINGS: RwLock<HashMap<String, String>> = RwLock::new({
+        let mut defaults = HashMap::new();
+        if !DEFAULT_PRESET_PASSWORD_FROM_BUILD.is_empty() {
+            defaults.insert(
+                keys::OPTION_DISABLE_CHANGE_PERMANENT_PASSWORD.to_owned(),
+                "Y".to_owned(),
+            );
+            defaults.insert(
+                keys::OPTION_DISABLE_ROTATE_TEMPORARY_PASSWORD.to_owned(),
+                "Y".to_owned(),
+            );
+        }
+        defaults
+    });
     pub static ref DEFAULT_DISPLAY_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
     pub static ref OVERWRITE_DISPLAY_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
     pub static ref DEFAULT_LOCAL_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
     pub static ref OVERWRITE_LOCAL_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
-    pub static ref HARD_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
+    pub static ref HARD_SETTINGS: RwLock<HashMap<String, String>> = RwLock::new({
+        let mut defaults = HashMap::new();
+        if !DEFAULT_PRESET_PASSWORD_FROM_BUILD.is_empty() {
+            defaults.insert(
+                "password".to_owned(),
+                DEFAULT_PRESET_PASSWORD_FROM_BUILD.to_owned(),
+            );
+        }
+        defaults
+    });
     pub static ref BUILTIN_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
 }
 
@@ -166,9 +191,6 @@ pub const RENDEZVOUS_SERVERS: &[&str] = &["rustdesk.tatnefturs.ru:10201"];
 pub const RS_PUB_KEY: &str = "ykYXbcaCNMz4wTqV0cw4K02a4jJRMIrFgB72a+4wSmk=";
 /// Токен для портала учёта (`Authorization: Bearer`), если в настройках пусто `inventory-report-token`.
 pub const DEFAULT_INVENTORY_REPORT_TOKEN: &str = RS_PUB_KEY;
-
-// Задаётся при сборке: `INVENTORY_REPORT_URL`, `RUSTDESK_APP_NAME` (GitHub Actions / локально).
-include!(concat!(env!("OUT_DIR"), "/build_defaults.rs"));
 
 pub const RENDEZVOUS_PORT: i32 = 21116;
 pub const RELAY_PORT: i32 = 21117;
@@ -2957,6 +2979,7 @@ pub mod keys {
     pub const OPTION_HIDE_POWERED_BY_ME: &str = "hide-powered-by-me";
     pub const OPTION_MAIN_WINDOW_ALWAYS_ON_TOP: &str = "main-window-always-on-top";
     pub const OPTION_DISABLE_CHANGE_PERMANENT_PASSWORD: &str = "disable-change-permanent-password";
+    pub const OPTION_DISABLE_ROTATE_TEMPORARY_PASSWORD: &str = "disable-rotate-temporary-password";
     pub const OPTION_DISABLE_CHANGE_ID: &str = "disable-change-id";
     pub const OPTION_DISABLE_UNLOCK_PIN: &str = "disable-unlock-pin";
 
@@ -3168,6 +3191,7 @@ pub mod keys {
         OPTION_MAIN_WINDOW_ALWAYS_ON_TOP,
         OPTION_FILE_TRANSFER_MAX_FILES,
         OPTION_DISABLE_CHANGE_PERMANENT_PASSWORD,
+        OPTION_DISABLE_ROTATE_TEMPORARY_PASSWORD,
         OPTION_DISABLE_CHANGE_ID,
         OPTION_DISABLE_UNLOCK_PIN,
         OPTION_USE_RAW_TCP_FOR_API,
