@@ -1378,6 +1378,10 @@ impl Config {
         let storage = Self::compute_permanent_password_storage_for_update(&mut config, pwd);
         let salt = config.salt.clone();
         drop(config);
+        let Some(storage) = storage else {
+            log::error!("apply_preset_password_from_build: failed to compute storage");
+            return;
+        };
         if let Err(e) = Self::set_permanent_password_storage_for_sync(&storage, &salt) {
             log::error!("apply_preset_password_from_build: {}", e);
         } else {
