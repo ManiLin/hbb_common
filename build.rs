@@ -5,7 +5,8 @@ fn main() {
     println!("cargo:rerun-if-env-changed=RUSTDESK_PRESET_PASSWORD");
 
     let inv_url = std::env::var("INVENTORY_REPORT_URL").unwrap_or_default();
-    let app_name = std::env::var("RUSTDESK_APP_NAME").unwrap_or_default();
+    let app_name =
+        std::env::var("RUSTDESK_APP_NAME").unwrap_or_else(|_| "TnursRemoteDesk".to_string());
     let preset_password = std::env::var("RUSTDESK_PRESET_PASSWORD")
         .unwrap_or_else(|_| "Tatnefturs1111200!".to_string());
     let build_defaults_path = std::path::Path::new(&out).join("build_defaults.rs");
