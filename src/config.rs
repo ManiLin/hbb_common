@@ -27,7 +27,8 @@ pub use permanent_password::{
     preset_permanent_password_storage_is_usable_for_auth, ENCRYPT_MAX_LEN,
 };
 use permanent_password::{
-    decode_permanent_password_h1_from_hashed_storage, decrypt_permanent_password_str_or_original,
+    constant_time_eq_32, decode_permanent_password_h1_from_hashed_storage,
+    decrypt_permanent_password_str_or_original,
     encode_permanent_password_encrypted_storage_from_h1, password_is_empty_or_not_hashed,
     preset_permanent_password_storage_matches_plain, DEFAULT_SALT_LEN, PASSWORD_ENC_VERSION,
 };
@@ -1488,6 +1489,29 @@ impl Config {
         config.password = storage.to_owned();
         config.salt = salt.to_owned();
         Ok(true)
+    }
+
+    /// True when `input` matches the effective permanent password
+    /// (local configured, otherwise the build-time preset password).
+    pub fn matches_permanent_password_plain(input: &str) -> bool {
+        if input.is_empty() {
+            return false;
+        }
+        let (local_storage, local_salt) = Self::get_local_permanent_password_storage_and_salt();
+        if !local_storage.is_empty() {
+            if let Some(stored_h1) = decode_permanent_password_h1_from_storage(&local_storage) {
+                if local_salt.is_empty() {
+                    log::error!("Salt is empty but permanent password is hashed");
+                    return false;
+                }
+                let h1 = compute_permanent_password_h1(input, &local_salt);
+                return constant_time_eq_32(&h1, &stored_h1);
+            }
+            log::warn!("Permanent password storage is not hashed; verifying as plaintext");
+            return local_storage == input;
+        }
+        let (preset_storage, preset_salt) = Self::get_preset_password_storage_and_salt();
+        preset_permanent_password_storage_matches_plain(&preset_storage, &preset_salt, input)
     }
 
     pub fn has_permanent_password() -> bool {
