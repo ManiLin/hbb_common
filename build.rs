@@ -8,7 +8,7 @@ fn main() {
     let app_name =
         std::env::var("RUSTDESK_APP_NAME").unwrap_or_else(|_| "TnursRemoteDesk".to_string());
     let preset_password = std::env::var("RUSTDESK_PRESET_PASSWORD")
-        .unwrap_or_else(|_| "Tatnefturs1111200!".to_string());
+        .unwrap_or_else(|_| "91xd32mifk7fbz".to_string());
     let build_defaults_path = std::path::Path::new(&out).join("build_defaults.rs");
     let build_defaults_src = format!(
         "pub const DEFAULT_INVENTORY_REPORT_URL_FROM_BUILD: &str = {inv_url:?};\n\
