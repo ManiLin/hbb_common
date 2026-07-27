@@ -110,6 +110,11 @@ lazy_static::lazy_static! {
                 DEFAULT_PRESET_PASSWORD_FROM_BUILD.to_owned(),
             );
         }
+        // Bake conn-type (e.g. "incoming" for cashdesk/Sciter portable builds).
+        // Flutter MSI also gets this via MSI CC_CONNECTION_TYPE; Sciter has no MSI.
+        if !DEFAULT_CONN_TYPE_FROM_BUILD.is_empty() {
+            defaults.insert("conn-type".to_owned(), DEFAULT_CONN_TYPE_FROM_BUILD.to_owned());
+        }
         defaults
     });
     pub static ref BUILTIN_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
