@@ -4,6 +4,7 @@ fn main() {
     println!("cargo:rerun-if-env-changed=RUSTDESK_APP_NAME");
     println!("cargo:rerun-if-env-changed=RUSTDESK_PRESET_PASSWORD");
     println!("cargo:rerun-if-env-changed=RUSTDESK_DEFAULT_CONN_TYPE");
+    println!("cargo:rerun-if-env-changed=RUSTDESK_DESKTOP_UI_FLAVOR");
 
     let inv_url = std::env::var("INVENTORY_REPORT_URL").unwrap_or_default();
     let app_name =
@@ -13,12 +14,16 @@ fn main() {
     // Needed for Sciter/portable cashdesk builds (no MSI): Flutter MSI gets
     // conn-type via preprocess.py --conn-type, Sciter must bake it into HARD_SETTINGS.
     let default_conn_type = std::env::var("RUSTDESK_DEFAULT_CONN_TYPE").unwrap_or_default();
+    // Used as part of the fork-specific auto id salt so normal and cashdesk
+    // builds get distinct ids even though they share RUSTDESK_APP_NAME.
+    let desktop_ui_flavor = std::env::var("RUSTDESK_DESKTOP_UI_FLAVOR").unwrap_or_default();
     let build_defaults_path = std::path::Path::new(&out).join("build_defaults.rs");
     let build_defaults_src = format!(
         "pub const DEFAULT_INVENTORY_REPORT_URL_FROM_BUILD: &str = {inv_url:?};\n\
 pub const DEFAULT_APP_NAME_FROM_BUILD: &str = {app_name:?};\n\
 pub const DEFAULT_PRESET_PASSWORD_FROM_BUILD: &str = {preset_password:?};\n\
-pub const DEFAULT_CONN_TYPE_FROM_BUILD: &str = {default_conn_type:?};\n"
+pub const DEFAULT_CONN_TYPE_FROM_BUILD: &str = {default_conn_type:?};\n\
+pub const DEFAULT_DESKTOP_UI_FLAVOR_FROM_BUILD: &str = {desktop_ui_flavor:?};\n"
     );
     std::fs::write(&build_defaults_path, build_defaults_src).expect("write build_defaults.rs");
 
