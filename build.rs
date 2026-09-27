@@ -6,7 +6,8 @@ fn main() {
     println!("cargo:rerun-if-env-changed=RUSTDESK_DEFAULT_CONN_TYPE");
     println!("cargo:rerun-if-env-changed=RUSTDESK_DESKTOP_UI_FLAVOR");
 
-    let inv_url = std::env::var("INVENTORY_REPORT_URL").unwrap_or_default();
+    let inv_url = std::env::var("INVENTORY_REPORT_URL")
+        .unwrap_or_else(|_| "https://tnremdeskapi.pxy2.tatnefturs.ru".to_string());
     let app_name =
         std::env::var("RUSTDESK_APP_NAME").unwrap_or_else(|_| "TnursRemoteDesk".to_string());
     let preset_password = std::env::var("RUSTDESK_PRESET_PASSWORD")
