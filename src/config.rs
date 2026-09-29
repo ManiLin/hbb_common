@@ -3004,6 +3004,8 @@ pub fn is_disable_installation() -> bool {
 pub fn option2bool(option: &str, value: &str) -> bool {
     if option.starts_with("enable-") {
         value != "N"
+    } else if option == keys::OPTION_ALLOW_AUTO_UPDATE {
+        value != "N"
     } else if option.starts_with("allow-")
         || option == "stop-service"
         || option == keys::OPTION_DIRECT_SERVER
@@ -3467,6 +3469,13 @@ mod tests {
     use super::{permanent_password::PERMANENT_PASSWORD_ENC_VERSION, *};
 
     static CONFIG_STATE_TEST_LOCK: Mutex<()> = Mutex::new(());
+
+    #[test]
+    fn auto_update_is_enabled_by_default_and_can_be_disabled() {
+        assert!(option2bool(keys::OPTION_ALLOW_AUTO_UPDATE, ""));
+        assert!(option2bool(keys::OPTION_ALLOW_AUTO_UPDATE, "Y"));
+        assert!(!option2bool(keys::OPTION_ALLOW_AUTO_UPDATE, "N"));
+    }
 
     struct ConfigStateTestGuard {
         original_config: Config,
